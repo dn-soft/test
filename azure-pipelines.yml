@@ -4,18 +4,18 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/javascript
 
 trigger:
-- master
+- main
 
 pool:
-  vmImage: 'ubuntu-latest'
+  vmImage: 'Ubuntu-16.04'
+
+variables:
+  imageName: 'pipelines-javascript-docker'
 
 steps:
-- task: NodeTool@0
+- task: Docker@2
+  displayName: Build an image
   inputs:
-    versionSpec: '12.x'
-  displayName: 'Install Node.js'
-
-- script: |
-    npm install
-    
-  displayName: 'npm install'
+    repository: $(imageName)
+    command: build
+    Dockerfile: Dockerfile
