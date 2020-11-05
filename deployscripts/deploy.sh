@@ -1,1 +1,0 @@
-docker pull test1236.azurecr.io/hellotest:3
