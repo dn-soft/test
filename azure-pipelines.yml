@@ -37,7 +37,6 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
-      inputs:
         targetType: 'filePath'
         filePath: /home/azureuserDoc/azagent/_work/r1/a/_dn-soft.test/deployscripts
     
