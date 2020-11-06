@@ -18,6 +18,11 @@ variables:
   
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
+steps:
+- task: Bash@3
+  inputs:
+    targetType: 'filePath'
+    filePath: $(System.DefaultWorkingDirectory)/deploy.sh
 
 stages:
 - stage: Build
