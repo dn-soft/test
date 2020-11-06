@@ -35,10 +35,7 @@ stages:
         repository: $(imageRepository)
         dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
+        filePath: $(System.DefaultWorkingDirectory)/deploy.sh
         tags: |
           $(tag)
-steps:
-- task: Bash@3
-  inputs:
-    targetType: 'filePath'
-    filePath: $(System.DefaultWorkingDirectory)/deploy.sh
+    
