@@ -37,9 +37,9 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
-        runOptions: 'inline'
-        inline: 'sh deploy.sh'
-        interpreterCommand: '/'
-        readyTimeout: '20000'
+        # runOptions: 'inline'
+        # inline: 'sh deploy.sh'
+        # interpreterCommand: '/'
+        # readyTimeout: '20000'
         
        
