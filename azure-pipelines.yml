@@ -18,7 +18,7 @@ variables:
   
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
-  
+
 stages:
 - stage: Build
   displayName: Build and push stage
@@ -37,4 +37,4 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
-        script: sh deploy.sh
+        script: echo sh deploy.sh
