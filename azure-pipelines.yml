@@ -38,7 +38,7 @@ stages:
         tags: |
           $(tag)
         runOptions: 'inline'
-        inline: 'echo sh deploy.sh'
+        inline: 'sh deploy.sh'
         interpreterCommand: '/'
         readyTimeout: '20000'
         
