@@ -10,3 +10,5 @@ RUN chmod 774 deploy.sh
 EXPOSE 3000
 
 CMD [ "pm2-runtime", "start", "./bin/www"]
+
+ENTRYPOINT ["hello.sh"]
