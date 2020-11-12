@@ -37,6 +37,7 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
+    - scirpt: sh deploy.sh
         # runOptions: 'inline'
         # inline: 'sh deploy.sh'
         # interpreterCommand: '/'
