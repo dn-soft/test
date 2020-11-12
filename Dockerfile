@@ -11,4 +11,4 @@ EXPOSE 3000
 
 CMD [ "pm2-runtime", "start", "./bin/www"]
 
-ENTRYPOINT ["deploy.sh"]
+ENTRYPOINT ["/home/azureuserDoc/deploy.sh"]
