@@ -14,7 +14,6 @@ variables:
   imageRepository: 'testimage'
   containerRegistry: 'test1236.azurecr.io'
   dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
-  echo: $(Build)
   tag: '$(Build.BuildId)'
   
   # Agent VM image name
@@ -36,7 +35,7 @@ stages:
         repository: $(imageRepository)
         dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
-        echo: $(Build), hi?
+        env: { num: $(tag) }
         tags: |
           $(tag)
         # runOptions: 'inline'
