@@ -35,12 +35,11 @@ stages:
         repository: $(imageRepository)
         dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
-        env: { num: $(tag) }
         tags: |
           $(tag)
         # runOptions: 'inline'
         # inline: 'sh deploy.sh'
         # interpreterCommand: '/'
         # readyTimeout: '20000'
-        
+    - env: { num: $(tag) }
        
