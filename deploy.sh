@@ -1,5 +1,6 @@
-# docker pull test1236.azurecr.io/testimage
-docker login test1236.azurecr.io
-docker pull test1236.azurecr.io/testimage:44
-echo ????????????????????????
-docker run -p 3000:3000 -d test1236.azurecr.io/testimage:44
+sudo docker login test1236.azurecr.io
+sudo docker stop `docker ps -a -q`
+sudo docker rm `docker ps -qa`
+
+sudo docker pull test1236.azurecr.io/testimage:latest
+sudo docker run -p 3000:3000 -d test1236.azurecr.io/testimage:latest
