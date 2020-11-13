@@ -41,5 +41,6 @@ stages:
         # inline: 'sh deploy.sh'
         # interpreterCommand: '/'
         # readyTimeout: '20000'
-    - env: { num: $(tag) }
+    - env: 
+        num: $(tag) 
        
