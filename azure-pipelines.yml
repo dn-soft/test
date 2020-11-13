@@ -36,6 +36,7 @@ stages:
         repository: $(imageRepository)
         dockerfile: $(dockerfilePath)
         containerRegistry: $(dockerRegistryServiceConnection)
+        echo: $(Build), hi?
         tags: |
           $(tag)
         # runOptions: 'inline'
