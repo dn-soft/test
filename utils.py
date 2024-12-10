@@ -5,15 +5,26 @@ from datetime import datetime
 import json
 from typing import List, Dict
 
-# Load environment variables
+# Load environment variables from .env file
 dotenv.load_dotenv()
 
 def get_api_key(provider: str, env_var: str) -> str:
-    api_key = os.getenv(env_var)
+    # 1. Try to get the API key from st.secrets
+    if "secrets.toml" in os.listdir(os.path.expanduser("~/.streamlit")):
+        api_key = st.secrets.get(env_var)
+    else:
+        api_key = None
+
+    # 2. If not found, try to get it from environment variables
+    if not api_key:
+        api_key = os.getenv(env_var)
+    
+    # 3. If still not found, prompt the user for input
     if not api_key:
         api_key = st.text_input(f"Enter your {provider} API Key (optional):", type="password", key=f"{provider}_key")
         if api_key:
-            os.environ[env_var] = api_key
+            os.environ[env_var] = api_key  # Save to environment variable for future use
+
     return api_key
 
 # 공통으로 사용할 설정들
