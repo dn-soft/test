@@ -158,3 +158,11 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# 프롬프트 파일
+prompts.json
+system_prompts/*.md
+
+# 채팅 히스토리
+.streamlit/chat_history.json
+chat_history/
