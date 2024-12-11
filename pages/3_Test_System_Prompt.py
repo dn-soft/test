@@ -56,9 +56,8 @@ if st.button("AI 응답 받기"):
 
         # AI와의 대화 구성
         messages = [
-            {"role": "system", "content": prompt_with_variables},
-            {"role": "user", "content": user_input}
-        ]
+            {"role": "system", "content": prompt_with_variables}
+        ] + st.session_state.chat_history + [{"role": "user", "content": user_input}]
 
         # AI 응답 요청
         with st.spinner("AI 응답을 기다리는 중..."):
@@ -83,11 +82,14 @@ if st.button("AI 응답 받기"):
         st.chat_message("user").markdown(user_input)
         st.chat_message("assistant").markdown(ai_response)
 
+        # 사용자 입력 필드 초기화
+        st.rerun()  # 페이지 새로 고침
+
     else:
         st.error("사용자 입력을 입력하세요.")
 
-# 채팅 히스토리 표시 (시스템 프롬프트는 제외)
-for chat in st.session_state.chat_history:
+# 채팅 히스토리 표시 (최신 메시지가 아래에 오도록)
+for chat in reversed(st.session_state.chat_history):
     with st.chat_message(chat["role"]):
         st.markdown(chat["content"])
 
@@ -109,3 +111,4 @@ if st.sidebar.button("🗑️ 채팅 초기화"):
     st.session_state.total_round = 0  # 총 라운드 수 초기화
     st.session_state.clear()  # 세션 상태 초기화
     st.rerun()  # 페이지 새로 고침
+    
