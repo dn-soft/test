@@ -230,4 +230,7 @@ def list_chat_histories() -> List[Dict]:
                 continue
     
     return sorted(histories, key=lambda x: x["saved_at"], reverse=True) 
-  
+
+def get_available_models() -> list:
+    """사용 가능한 모델 목록을 반환합니다."""
+    return ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"]  # 필요한 경우 추가 모델을 여기에 나열하세요.
