@@ -9,13 +9,10 @@ from typing import List, Dict
 dotenv.load_dotenv()
 
 def get_api_key(provider: str, env_var: str) -> str:
-    # 1. Try to get the API key from st.secrets
-    if "secrets.toml" in os.listdir(os.path.expanduser("~/.streamlit")):
-        api_key = st.secrets.get(env_var)
-    else:
-        api_key = None
-
-    # 2. If not found, try to get it from environment variables
+    # 1. Try to get the API key from st.secrets (for Streamlit Cloud)
+    api_key = st.secrets.get(env_var) if "streamlit" in os.environ.get("HOME", "") else None
+    
+    # 2. If not found, try to get it from environment variables (for local)
     if not api_key:
         api_key = os.getenv(env_var)
     
@@ -234,3 +231,4 @@ def list_chat_histories() -> List[Dict]:
 def get_available_models() -> list:
     """사용 가능한 모델 목록을 반환합니다."""
     return ["gpt-4o", "gpt-4o-mini", "gpt-3.5-turbo"]  # 필요한 경우 추가 모델을 여기에 나열하세요.
+  
