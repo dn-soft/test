@@ -51,7 +51,15 @@ with tab1:
                     st.info(f"📝 설명: {prompt['description']}")
                 st.text(f"📂 파일: {prompt['file_path']}")
                 st.text(f"📅 수정일: {prompt['created_at']}")
-                
+
+                # Download button for the prompt
+                st.download_button(
+                    label="Download as Markdown",
+                    data=prompt['content'],
+                    file_name=f"{prompt['name']}.md",
+                    mime="text/markdown"
+                )
+
                 col1, col2 = st.columns([1, 1])
                 with col1:
                     if st.button("이 프롬프트 사용", key=f"use_sys_{prompt['name']}"):
