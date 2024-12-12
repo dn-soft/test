@@ -1,5 +1,5 @@
 import streamlit as st
-from utils import load_system_prompts, get_available_models
+from utils import load_system_prompts, get_available_models, save_system_prompt
 import json
 from datetime import datetime
 from litellm import completion
@@ -96,7 +96,7 @@ for chat in reversed(st.session_state.chat_history):
 # 사이드바에 채팅 히스토리 다운로드 버튼 추가
 with st.sidebar:
     st.markdown("### 채팅 히스토리 다운로드")
-    if st.button("채팅 히스토리 다운로드 (JSON)"):
+    if st.button("채팅 히스토리 다운로��� (JSON)"):
         chat_history_json = json.dumps(st.session_state.chat_history, ensure_ascii=False, indent=2)
         st.download_button(
             label="채팅 히스토리 다운로드",
@@ -111,4 +111,94 @@ if st.sidebar.button("🗑️ 채팅 초기화"):
     st.session_state.total_round = 0  # 총 라운드 수 초기화
     st.session_state.clear()  # 세션 상태 초기화
     st.rerun()  # 페이지 새로 고침
+
+# 새로운 섹션: 시스템 프롬프트 자동 테스트 및 평가
+st.sidebar.header("🔍 시스템 프롬프트 자동 테스트")
+
+# 테스트 케이스 입력 필드
+test_cases = st.sidebar.text_area("테스트 케이스 입력 (각 줄에 하나씩):", 
+                                   "간단한 질문\n복잡한 문제 해결\n창의적인 작업")
+
+# 평가 기준 선택
+evaluation_criteria = st.sidebar.multiselect(
+    "평가 기준 선택:", 
+    [
+        "정확성", 
+        "일관성", 
+        "창의성", 
+        "응답 길이", 
+        "문법 정확성"
+    ]
+)
+
+# 자동 테스트 버튼
+if st.sidebar.button("🚀 시스템 프롬프트 자동 테스트"):
+    if not test_cases or not evaluation_criteria:
+        st.sidebar.error("테스트 케이스와 평가 기준을 선택해주세요.")
+    else:
+        # 테스트 결과 저장할 딕셔너리
+        test_results = {
+            "prompt_name": selected_prompt_name,
+            "prompt_content": selected_prompt_content,
+            "test_date": datetime.now().isoformat(),
+            "test_cases": []
+        }
+
+        # 각 테스트 케이스에 대해 테스트 수행
+        for case in test_cases.split('\n'):
+            if not case.strip():
+                continue
+
+            # AI 응답 요청
+            messages = [
+                {"role": "system", "content": selected_prompt_content},
+                {"role": "user", "content": case}
+            ]
+
+            response = completion(
+                model=model,
+                messages=messages,
+                temperature=temperature,
+                max_tokens=max_tokens,
+                top_p=top_p,
+                stream=False
+            )
+
+            ai_response = response.choices[0].message.content
+
+            # 테스트 케이스별 평가
+            case_evaluation = {
+                "input": case,
+                "output": ai_response,
+                "evaluations": {}
+            }
+
+            # 선택된 평가 기준에 따라 평가 (실제 평가는 더 정교한 로직 필요)
+            for criterion in evaluation_criteria:
+                if criterion == "정확성":
+                    case_evaluation["evaluations"]["정확성"] = "보통"  # 임시 평가
+                elif criterion == "일관성":
+                    case_evaluation["evaluations"]["일관성"] = "높음"  # 임시 평가
+                # 다른 평가 기준 추가 가능
+
+            test_results["test_cases"].append(case_evaluation)
+
+        # 테스트 결과 표시
+        st.sidebar.success("테스트 완료!")
+        st.sidebar.json(test_results)
+
+        # 테스트 결과 다운로드 버튼
+        test_results_json = json.dumps(test_results, ensure_ascii=False, indent=2)
+        st.sidebar.download_button(
+            label="테스트 결과 다운로드",
+            data=test_results_json,
+            file_name=f"system_prompt_test_{selected_prompt_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json"
+        )
+
+        # 선택적: 평가 결과에 따라 시스템 프롬프트 자동 개선
+        if st.sidebar.checkbox("테스트 결과에 따라 프롬프트 자동 개선"):
+            # 여기에 프롬프트 개선 로직 추가 
+            # 예: OpenAI의 프롬프트 엔지니어링 API 또는 자체 개선 알고리즘
+            st.sidebar.info("프롬프트 자동 개선 기능은 아직 구현되지 않았습니다.")
     
