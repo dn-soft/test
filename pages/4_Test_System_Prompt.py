@@ -1,136 +1,130 @@
 import streamlit as st
-from utils import load_system_prompts, get_available_models
-import json
-from datetime import datetime
+from typing import List, Dict
 from litellm import completion
-import random
+from datetime import datetime
+import json
 
-st.title("🧪 시스템 프롬프트 턴 기반 테스트")
-
-# 시스템 프롬프트 로드
-system_prompts = load_system_prompts()
-
-# 사이드바에서 시스템 프롬프트 선택
-st.sidebar.header("시스템 프롬프트 선택")
-if not system_prompts:
-    st.sidebar.warning("저장된 시스템 프롬프트가 없습니다. 먼저 시스템 프롬프트를 추가하세요.")
-else:
-    prompt_names = [p['name'] for p in system_prompts]
-    selected_prompt_name = st.sidebar.selectbox("테스트할 시스템 프롬프트 선택:", prompt_names)
-
-    # 선택된 시스템 프롬프트 내용 가져오기
-    selected_prompt_content = next(p['content'] for p in system_prompts if p['name'] == selected_prompt_name)
-
-    # 시스템 프롬프트에 포함된 변수 추출
-    variables = {}
-    variable_names = [var.strip('{}') for var in selected_prompt_content.split() if '{' in var and '}' in var]
-
-    # 변수 입력 필드 생성
-    for var in variable_names:
-        variables[var] = st.sidebar.text_input(f"{var} 값을 입력하세요:", "")
-
-    # 테스트 입력 필드
-    test_inputs = st.sidebar.text_area("테스트 입력 (쉼표로 구분):", 
-        "게임 시작해줘, 2/4, 힌트 줘, 다음 문제 알려줘")
-
-    # 턴 수 입력
-    max_turns = st.sidebar.number_input("최대 턴 수:", min_value=1, max_value=10, value=5)
-
-    # 모델 선택
-    model = st.sidebar.selectbox("테스트할 모델:", get_available_models())
-
-    # 턴 기반 테스트 버튼
-    if st.sidebar.button("🚀 턴 기반 테스트 시작"):
-        if not all(variables.values()):
-            st.sidebar.error("모든 변수를 입력해주세요.")
-        else:
-            # 전체 테스트 결과 저장
-            total_test_results = {
-                "max_turns": max_turns,
-                "test_date": datetime.now().isoformat(),
-                "turns": []
-            }
-
-            # 테스트 입력 준비
-            test_input_list = [input.strip() for input in test_inputs.split(',') if input.strip()]
-
-            # 시스템 프롬프트에 변수 대체
-            prompt_with_variables = selected_prompt_content
-            for var, value in variables.items():
-                prompt_with_variables = prompt_with_variables.replace(f"{{{var}}}", value)
-
-            # 대화 메시지 초기화
-            messages = [
-                {"role": "system", "content": prompt_with_variables}
-            ]
-
-            # 턴 기반 테스트 수행
-            for turn in range(max_turns):
-                # 랜덤하게 사용자 입력 선택
-                user_input = test_input_list[turn % len(test_input_list)]
-
-                # 메시지에 사용자 입력 추가
-                messages.append({"role": "user", "content": user_input})
-
-                # AI 응답 요청
-                with st.spinner(f"{turn + 1}/{max_turns} 턴 진행 중..."):
-                    try:
-                        response = completion(
-                            model=model,
-                            messages=messages,
-                            temperature=0.7,
-                            max_tokens=300,
-                            top_p=1.0,
-                            stream=False
-                        )
-
-                        # AI 응답 표시
-                        ai_response = response.choices[0].message.content
-
-                        # 메시지에 AI 응답 추가
-                        messages.append({"role": "assistant", "content": ai_response})
-
-                        # 턴 결과 저장
-                        turn_result = {
-                            "turn": turn + 1,
-                            "user_input": user_input,
-                            "ai_response": ai_response
-                        }
-
-                        # JSON 응답 추출 시도
-                        try:
-                            json_start = ai_response.find('{')
-                            json_end = ai_response.rfind('}') + 1
-                            if json_start != -1 and json_end != -1:
-                                json_str = ai_response[json_start:json_end]
-                                turn_result['parsed_json'] = json.loads(json_str)
-                        except (json.JSONDecodeError, ValueError):
-                            pass
-
-                        total_test_results["turns"].append(turn_result)
-
-                    except Exception as e:
-                        st.sidebar.error(f"{turn + 1} 턴 중 오류 발생: {str(e)}")
-                        turn_result = {
-                            "turn": turn + 1,
-                            "error": str(e)
-                        }
-                        total_test_results["turns"].append(turn_result)
-
-                # 게임 종료 조건 확인 (JSON 응답의 is_end 확인)
-                if turn_result.get('parsed_json', {}).get('is_end', False):
-                    break
-
-            # 테스트 결과 표시
-            st.sidebar.success("턴 기반 테스트 완료!")
-            st.sidebar.json(total_test_results)
-
-            # 테스트 결과 다운로드 버튼
-            test_results_json = json.dumps(total_test_results, ensure_ascii=False, indent=2)
-            st.sidebar.download_button(
-                label="테스트 결과 다운로드",
-                data=test_results_json,
-                file_name=f"turn_based_test_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                mime="application/json"
+class LLMAgent:
+    def __init__(self, name: str, system_prompt: str, model: str):
+        self.name = name
+        self.system_prompt = system_prompt
+        self.model = model
+        self.memory: List[Dict] = []
+        self.initialize_memory()
+    
+    def initialize_memory(self):
+        """Initialize the conversation memory with system prompt"""
+        self.memory = [{"role": "system", "content": self.system_prompt}]
+    
+    def update_memory(self, role: str, content: str):
+        """Add new message to memory"""
+        self.memory.append({"role": role, "content": content})
+        
+    def get_response(self, max_tokens: int = 300) -> str:
+        """Generate response using the model and current memory"""
+        try:
+            response = completion(
+                model=self.model,
+                messages=self.memory,
+                temperature=0.7,
+                max_tokens=max_tokens,
+                top_p=1.0,
+                stream=False
             )
+            return response.choices[0].message.content
+        except Exception as e:
+            return f"Error generating response: {str(e)}"
+
+class LLMDialogue:
+    def __init__(self, agent1: LLMAgent, agent2: LLMAgent):
+        self.agent1 = agent1
+        self.agent2 = agent2
+        self.conversation_history: List[Dict] = []
+        
+    def conduct_dialogue(self, initial_message: str, max_turns: int = 5) -> List[Dict]:
+        """Conduct a dialogue between the two agents"""
+        current_speaker = self.agent1
+        current_listener = self.agent2
+        
+        # Start with initial message
+        self.agent1.update_memory("user", initial_message)
+        self.conversation_history.append({
+            "turn": 0,
+            "speaker": "user",
+            "message": initial_message
+        })
+        
+        for turn in range(max_turns):
+            # Get response from current speaker
+            response = current_speaker.get_response()
             
+            # Update conversation history
+            self.conversation_history.append({
+                "turn": turn + 1,
+                "speaker": current_speaker.name,
+                "message": response
+            })
+            
+            # Update both agents' memories
+            current_speaker.update_memory("assistant", response)
+            current_listener.update_memory("user", response)
+            
+            # Switch roles
+            current_speaker, current_listener = current_listener, current_speaker
+            
+        return self.conversation_history
+
+def main():
+    st.title("🤖 LLM Dialogue System")
+    
+    # Sidebar configurations
+    st.sidebar.header("Configuration")
+    
+    # Agent 1 configuration
+    st.sidebar.subheader("Agent 1 Configuration")
+    agent1_name = st.sidebar.text_input("Agent 1 Name", "Agent 1")
+    agent1_prompt = st.sidebar.text_area("Agent 1 System Prompt", "You are a helpful assistant.")
+    agent1_model = st.sidebar.selectbox("Agent 1 Model", ["gpt-3.5-turbo", "gpt-4"], key="model1")
+    
+    # Agent 2 configuration
+    st.sidebar.subheader("Agent 2 Configuration")
+    agent2_name = st.sidebar.text_input("Agent 2 Name", "Agent 2")
+    agent2_prompt = st.sidebar.text_area("Agent 2 System Prompt", "You are a curious assistant.")
+    agent2_model = st.sidebar.selectbox("Agent 2 Model", ["gpt-3.5-turbo", "gpt-4"], key="model2")
+    
+    # Dialogue configuration
+    st.sidebar.subheader("Dialogue Configuration")
+    initial_message = st.sidebar.text_area("Initial Message", "Hello! Let's start a conversation.")
+    max_turns = st.sidebar.number_input("Maximum Turns", min_value=1, max_value=20, value=5)
+    
+    # Start dialogue button
+    if st.sidebar.button("Start Dialogue"):
+        # Initialize agents
+        agent1 = LLMAgent(agent1_name, agent1_prompt, agent1_model)
+        agent2 = LLMAgent(agent2_name, agent2_prompt, agent2_model)
+        
+        # Create dialogue system
+        dialogue = LLMDialogue(agent1, agent2)
+        
+        # Conduct dialogue
+        with st.spinner("Conducting dialogue..."):
+            conversation = dialogue.conduct_dialogue(initial_message, max_turns)
+            
+        # Display conversation
+        st.subheader("Conversation")
+        for entry in conversation:
+            with st.chat_message(entry["speaker"].lower()):
+                st.write(entry["message"])
+        
+        # Export conversation
+        conversation_json = json.dumps(conversation, ensure_ascii=False, indent=2)
+        st.download_button(
+            label="Download Conversation",
+            data=conversation_json,
+            file_name=f"llm_dialogue_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json"
+        )
+
+if __name__ == "__main__":
+    main()
+    
