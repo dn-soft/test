@@ -144,7 +144,7 @@ def main():
     # Dialogue configuration
     st.sidebar.subheader("Dialogue Configuration")
     initial_message = st.sidebar.text_area("Initial Message", "Hello! Let's start a conversation.")
-    max_turns = st.sidebar.number_input("Maximum Turns", min_value=1, max_value=20, value=5)
+    max_turns = st.sidebar.number_input("Maximum Turns", min_value=1, max_value=100, value=5)
     
     # Start dialogue button
     if st.sidebar.button("Start Dialogue"):
