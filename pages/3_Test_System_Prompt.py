@@ -149,7 +149,19 @@ def main():
     # Start dialogue button
     if st.sidebar.button("Start Dialogue"):
         if not agent1_api_key or not agent2_api_key:
-            st.sidebar.error("Please provide API keys for both agents.")
+            missing_providers = []
+            if not agent1_api_key:
+                missing_providers.append(agent1_provider)
+            if not agent2_api_key:
+                missing_providers.append(agent2_provider)
+                
+            st.sidebar.error(
+                f"Please provide API keys for: {', '.join(missing_providers)}\n\n"
+                "To add API keys:\n"
+                "1. Go to the Home page\n"
+                "2. Click on 'API Key Management'\n"
+                "3. Enter your API keys in the respective provider fields"
+            )
             return
             
         # Initialize agents
