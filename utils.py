@@ -8,7 +8,7 @@ from typing import List, Dict
 # Load environment variables from .env file
 dotenv.load_dotenv()
 
-def get_api_key(provider: str, env_var: str) -> str:
+def get_api_key(provider: str, env_var: str, key_suffix: str = "") -> str:
     # 1. Try to get the API key from st.secrets (for Streamlit Cloud)
     api_key = st.secrets.get(env_var) if "streamlit" in os.environ.get("HOME", "") else None
     
@@ -16,11 +16,21 @@ def get_api_key(provider: str, env_var: str) -> str:
     if not api_key:
         api_key = os.getenv(env_var)
     
-    # 3. If still not found, prompt the user for input
+    # 3. If not found, check session state
     if not api_key:
-        api_key = st.text_input(f"Enter your {provider} API Key (optional):", type="password", key=f"{provider}_key")
+        api_key = st.session_state.get(env_var)
+    
+    # 4. If still not found, prompt the user for input
+    if not api_key:
+        key_id = f"{provider}_{key_suffix}_key" if key_suffix else f"{provider}_key"
+        api_key = st.text_input(
+            f"Enter your {provider} API Key (optional):", 
+            type="password", 
+            key=key_id
+        )
         if api_key:
-            os.environ[env_var] = api_key  # Save to environment variable for future use
+            os.environ[env_var] = api_key  # Save to environment variable
+            st.session_state[env_var] = api_key  # Save to session state
 
     return api_key
 

@@ -121,7 +121,7 @@ def main():
     # Provider and model selection for Agent 1
     agent1_provider = st.sidebar.selectbox("Agent 1 Provider", list(providers.keys()), key="provider1")
     agent1_model = st.sidebar.selectbox("Agent 1 Model", provider_models[agent1_provider], key="model1")
-    agent1_api_key = get_api_key(agent1_provider, providers[agent1_provider])
+    agent1_api_key = get_api_key(agent1_provider, providers[agent1_provider], key_suffix="agent1")
     
     # Agent 2 configuration
     st.sidebar.subheader("Agent 2 Configuration")
@@ -139,7 +139,7 @@ def main():
     # Provider and model selection for Agent 2
     agent2_provider = st.sidebar.selectbox("Agent 2 Provider", list(providers.keys()), key="provider2")
     agent2_model = st.sidebar.selectbox("Agent 2 Model", provider_models[agent2_provider], key="model2")
-    agent2_api_key = get_api_key(agent2_provider, providers[agent2_provider])
+    agent2_api_key = get_api_key(agent2_provider, providers[agent2_provider], key_suffix="agent2")
     
     # Dialogue configuration
     st.sidebar.subheader("Dialogue Configuration")
